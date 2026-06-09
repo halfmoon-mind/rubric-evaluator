@@ -283,6 +283,30 @@ def check_2_8(ctx):
     return mk("2.8", item, "MINOR", "pass")
 
 
+@rule
+def check_3_6(ctx):
+    item = "$ARGUMENTS use requires argument-hint"
+    uses_args = "$ARGUMENTS" in ctx.text
+    if not uses_args:
+        return mk("3.6", item, "MINOR", "na", why="skill does not use $ARGUMENTS")
+    if "argument-hint" in ctx.fm:
+        return mk("3.6", item, "MINOR", "pass")
+    return mk("3.6", item, "MINOR", "fail",
+              why="$ARGUMENTS is used but argument-hint is missing",
+              how_to_fix="add an 'argument-hint:' frontmatter key describing expected args")
+
+
+@rule
+def check_4_3(ctx):
+    item = "body is <=500 lines"
+    n = len(ctx.body.strip("\n").split("\n")) if ctx.body.strip() else 0
+    if n <= 500:
+        return mk("4.3", item, "MINOR", "pass")
+    return mk("4.3", item, "MINOR", "fail",
+              why="body is %d lines (>500)" % n,
+              how_to_fix="move detail into references/ and keep SKILL.md lean")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Skill rubric rule-checks.")
     ap.add_argument("skill_dir", nargs="?", help="path to the skill directory")
