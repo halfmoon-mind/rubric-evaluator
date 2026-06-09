@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render skill rubric findings as a concise markdown report."""
+"""Render rubric findings as a concise markdown report."""
 
 import argparse
 import json
@@ -93,7 +93,7 @@ def render_report(findings, skill_name="Skill"):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Render skill rubric findings as markdown.")
+    parser = argparse.ArgumentParser(description="Render rubric findings as markdown.")
     parser.add_argument("findings_json", help="JSON array or object containing findings")
     parser.add_argument("--skill-name", default="Skill", help="Display name for the report")
     args = parser.parse_args(argv)

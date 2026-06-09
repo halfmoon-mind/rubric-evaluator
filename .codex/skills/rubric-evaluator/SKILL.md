@@ -1,9 +1,9 @@
 ---
-name: skill-rubric-evaluator
-description: Evaluate Codex skill folders that contain SKILL.md with a 6-section rubric, deterministic rule checks, semantic model checks, S/A/B/C/F grades, and fixable reports. Use when asked to grade, audit, review, dogfood, or improve a Codex skill, skill directory, SKILL.md, skill rubric score, trigger quality, resource structure, or safety gate.
+name: rubric-evaluator
+description: Evaluate Codex skill folders that contain SKILL.md with a 6-section rubric, deterministic rule checks, semantic model checks, S/A/B/C/F grades, and fixable reports. Use when asked to grade, audit, review, dogfood, or improve a Codex skill, skill directory, SKILL.md, rubric score, trigger quality, resource structure, or safety gate.
 ---
 
-# Skill Rubric Evaluator
+# Rubric Evaluator
 
 Evaluate a Codex skill directory with a 6-section, 30-item rubric. Use deterministic scripts for structural and safety checks, then apply semantic model checks from the bundled rubric reference. If the runtime or installation path is incomplete, use the fallback playbook and label the result as provisional.
 

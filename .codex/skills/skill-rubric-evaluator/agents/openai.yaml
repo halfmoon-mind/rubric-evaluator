@@ -1,4 +1,0 @@
-interface:
-  display_name: "Skill Rubric Evaluator"
-  short_description: "Evaluate Codex skills with rubric checks"
-  default_prompt: "Use $skill-rubric-evaluator to grade this skill directory and produce a concise improvement report."
