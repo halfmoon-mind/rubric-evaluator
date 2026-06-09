@@ -3,6 +3,7 @@
 Apply these by reading the target skill's `SKILL.md`, `references/`, and `scripts/`.
 Emit one finding per item using the shared schema (see SKILL.md). `checker` is always
 `"model"`. Use `na` when the item genuinely does not apply, never to avoid judgment.
+Set each finding's `section` to the script's canonical token for that item — `validity` (§1), `trigger` (§3), `content` (§4), `resource` (§5) — matching the rule findings' `section` values, not the plural section headings.
 
 ## Table of Contents
 - [Section 1 — Validity (1.1, 1.2, 1.3)](#section-1--validity)

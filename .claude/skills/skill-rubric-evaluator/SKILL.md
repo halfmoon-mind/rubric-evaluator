@@ -54,7 +54,7 @@ The target skill directory. If the user did not name one, ask which directory to
   "how_to_fix": "rename to 'my-skill' and match the folder"
 }
 ```
-`severity`: BLOCKER | MAJOR | MINOR. `status`: pass | fail | na. `checker`: rule | model.
+`severity`: BLOCKER | MAJOR | MINOR. `status`: pass | fail | na. `checker`: rule | model. Emit `severity`, `status`, and `section` in exactly this case — the grade is computed by literal match, so a casing slip would be silently miscounted.
 
 ## Grade rule (same as `compute_grade`)
 - BLOCKER ≥ 1 → **F** (do not ship; rewrite)
