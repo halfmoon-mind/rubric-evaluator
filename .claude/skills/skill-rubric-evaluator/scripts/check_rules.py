@@ -456,6 +456,64 @@ def check_5_8(ctx):
     return mk("5.8", item, "MINOR", "pass")
 
 
+# (regex char-classes ensure these patterns do not match their own source text)
+SECRET_PATTERNS = [
+    (re.compile(r"AKIA[0-9A-Z]{16}"), "AWS access key id"),
+    (re.compile(r"(?i)aws_secret_access_key\s*[:=]\s*[A-Za-z0-9/+]{20,}"), "AWS secret key"),
+    (re.compile(r"-----BEGIN(?:[A-Z ]+)?PRIVATE KEY-----"), "private key block"),
+    (re.compile(r"gh[pousr]_[A-Za-z0-9]{36,}"), "GitHub token"),
+    (re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"), "Slack token"),
+    (re.compile(r"(?i)\b(?:api[_-]?key|secret|token|passwd|password)\b\s*[:=]\s*"
+                r"['\"][^'\"]{8,}['\"]"), "hardcoded credential"),
+]
+
+
+@rule
+def check_6_1(ctx):
+    item = "no plaintext secrets/credentials"
+    hits = []
+    for path in shipped_files(ctx.skill_dir):
+        text = read_text(path)
+        for pat, label in SECRET_PATTERNS:
+            if pat.search(text):
+                hits.append("%s:%s" % (os.path.basename(path), label))
+    if hits:
+        return mk("6.1", item, "BLOCKER", "fail",
+                  why="possible secret(s): %s" % ", ".join(sorted(set(hits))),
+                  how_to_fix="remove the secret; load credentials from env vars at runtime")
+    return mk("6.1", item, "BLOCKER", "pass")
+
+
+DESTRUCTIVE_PATTERNS = [
+    re.compile(r"rm\s+-[a-z]*[rf][a-z]*\b"),     # rm -rf / rm -fr / rm -r etc.
+    re.compile(r"rm\s+--no-preserve-root"),
+    re.compile(r"\bdd\s+if="),
+    re.compile(r"\bmkfs(\.[a-z0-9]+)?\b"),
+    re.compile(r"chmod\s+-R\s+777|chmod\s+777\s+-R"),
+    re.compile(r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:"),  # fork bomb
+    re.compile(r">\s*/dev/sd[a-z]"),
+]
+
+
+def _allowed_tools_text(ctx):
+    val = ctx.fm.get("allowed-tools", "")
+    return val if isinstance(val, str) else " ".join(map(str, val))
+
+
+@rule
+def check_6_2(ctx):
+    item = "allowed-tools has no destructive patterns"
+    text = _allowed_tools_text(ctx)
+    if not text:
+        return mk("6.2", item, "BLOCKER", "na", why="no allowed-tools declared")
+    for pat in DESTRUCTIVE_PATTERNS:
+        if pat.search(text):
+            return mk("6.2", item, "BLOCKER", "fail",
+                      why="allowed-tools permits a destructive command: %r" % text,
+                      how_to_fix="remove the destructive command from allowed-tools")
+    return mk("6.2", item, "BLOCKER", "pass")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Skill rubric rule-checks.")
     ap.add_argument("skill_dir", nargs="?", help="path to the skill directory")
