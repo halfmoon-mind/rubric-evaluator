@@ -9,6 +9,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 from types import SimpleNamespace
 
@@ -162,6 +163,75 @@ def compute_grade(findings):
     if majors <= 4:
         return "B"
     return "C"
+
+
+@rule
+def check_2_1(ctx):
+    item = "YAML frontmatter parses"
+    if ctx.fm_ok:
+        return mk("2.1", item, "BLOCKER", "pass")
+    return mk("2.1", item, "BLOCKER", "fail",
+              why="frontmatter is not parseable: %s" % ctx.fm_err,
+              how_to_fix="ensure SKILL.md opens with '---', closes with '---', "
+                         "and contains only 'key: value' lines (no tabs)")
+
+
+_KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+
+@rule
+def check_2_2(ctx):
+    item = "name is kebab-case (<=64 chars)"
+    if not ctx.fm_ok:
+        return mk("2.2", item, "BLOCKER", "na", why="frontmatter unparseable")
+    name = ctx.name
+    if name and _KEBAB.match(name) and len(name) <= 64:
+        return mk("2.2", item, "BLOCKER", "pass")
+    return mk("2.2", item, "BLOCKER", "fail",
+              why="name %r is not kebab-case or exceeds 64 chars" % name,
+              how_to_fix="use lowercase letters, digits, and single hyphens, "
+                         "e.g. 'my-skill'")
+
+
+@rule
+def check_2_3(ctx):
+    item = "name matches folder name"
+    if not ctx.fm_ok:
+        return mk("2.3", item, "BLOCKER", "na", why="frontmatter unparseable")
+    folder = os.path.basename(ctx.skill_dir)
+    if ctx.name == folder:
+        return mk("2.3", item, "BLOCKER", "pass")
+    return mk("2.3", item, "BLOCKER", "fail",
+              why="name %r != folder %r" % (ctx.name, folder),
+              how_to_fix="rename the folder or the name so they match")
+
+
+@rule
+def check_2_4(ctx):
+    item = "description is 1-1024 chars"
+    if not ctx.fm_ok:
+        return mk("2.4", item, "BLOCKER", "na", why="frontmatter unparseable")
+    n = len(ctx.description)
+    if 1 <= n <= 1024:
+        return mk("2.4", item, "BLOCKER", "pass")
+    return mk("2.4", item, "BLOCKER", "fail",
+              why="description length %d is outside 1-1024" % n,
+              how_to_fix="write a 1-1024 char description")
+
+
+_HTML_TAG = re.compile(r"<[a-zA-Z/][^>]*>")
+
+
+@rule
+def check_2_5(ctx):
+    item = "description has no XML/HTML tags"
+    if not ctx.fm_ok:
+        return mk("2.5", item, "BLOCKER", "na", why="frontmatter unparseable")
+    if _HTML_TAG.search(ctx.description):
+        return mk("2.5", item, "BLOCKER", "fail",
+                  why="description contains an angle-bracket tag",
+                  how_to_fix="remove HTML/XML tags from the description")
+    return mk("2.5", item, "BLOCKER", "pass")
 
 
 def main(argv=None):
