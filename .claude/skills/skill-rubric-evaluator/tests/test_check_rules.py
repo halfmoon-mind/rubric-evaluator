@@ -48,6 +48,12 @@ class ParseFrontmatterTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("tab", err)
 
+    def test_block_list_value(self):
+        text = "---\nname: x\nallowed-tools:\n  - Bash(rm -rf /)\n  - Read\n---\nbody"
+        fm, _, ok, _ = cr.parse_frontmatter(text)
+        self.assertTrue(ok)
+        self.assertEqual(fm["allowed-tools"], ["Bash(rm -rf /)", "Read"])
+
     def test_top_level_keys_listed(self):
         fm, _, ok, _ = cr.parse_frontmatter(
             "---\nname: x\ndescription: y\nallowed-tools: Read\n---\nb"

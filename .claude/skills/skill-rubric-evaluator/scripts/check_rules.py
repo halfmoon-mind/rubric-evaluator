@@ -103,8 +103,18 @@ def parse_frontmatter(text):
                 fm[key] = ""
             else:
                 fm[key] = _unquote(val)
-        # indent > 0 and not in a block scalar: an indented child of a mapping
-        # (e.g. metadata children). Accepted, not recorded as a top-level key.
+        else:
+            # indent > 0 and not in a block scalar. A '- item' line is a YAML
+            # block-sequence entry under the current key: collect it into a list
+            # value (only when the key was an empty 'key:' scalar). Any other
+            # indented line is a mapping child (e.g. metadata children) — accepted,
+            # not recorded as a top-level key.
+            stripped = raw.strip()
+            if current_key is not None and (stripped == "-" or stripped.startswith("- ")):
+                if fm.get(current_key, "") == "":
+                    fm[current_key] = []
+                if isinstance(fm.get(current_key), list):
+                    fm[current_key].append(_unquote(stripped[1:].strip()))
     return (fm, "\n".join(lines[end + 1:]), error is None, error)
 
 
