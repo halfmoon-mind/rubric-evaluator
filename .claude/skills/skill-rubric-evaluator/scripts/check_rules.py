@@ -234,6 +234,55 @@ def check_2_5(ctx):
     return mk("2.5", item, "BLOCKER", "pass")
 
 
+ALLOWED_FRONTMATTER_KEYS = {
+    # required
+    "name", "description",
+    # complete superset observed across all 409 installed skills (lean permissive:
+    # a false flag on a legit key is worse than missing a typo, and 2.6 is MAJOR)
+    "allowed-tools", "tools", "argument-hint", "user-invocable",
+    "disable-model-invocation", "license", "homepage", "author", "repository",
+    "version", "metadata", "mcp_tool", "mcp_args", "aliases",
+}
+
+
+@rule
+def check_2_6(ctx):
+    item = "only allowed frontmatter keys"
+    if not ctx.fm_ok:
+        return mk("2.6", item, "MAJOR", "na", why="frontmatter unparseable")
+    unknown = [k for k in top_level_keys(ctx.fm) if k not in ALLOWED_FRONTMATTER_KEYS]
+    if not unknown:
+        return mk("2.6", item, "MAJOR", "pass")
+    return mk("2.6", item, "MAJOR", "fail",
+              why="unrecognized frontmatter key(s): %s" % ", ".join(unknown),
+              how_to_fix="remove non-standard keys or move them under 'metadata:'")
+
+
+_RESERVED = re.compile(r"(?i)\b(claude|anthropic)\b")
+
+
+@rule
+def check_2_7(ctx):
+    item = "name/description free of claude/anthropic reserved words"
+    if not ctx.fm_ok:
+        return mk("2.7", item, "MAJOR", "na", why="frontmatter unparseable")
+    if _RESERVED.search(ctx.name) or _RESERVED.search(ctx.description):
+        return mk("2.7", item, "MAJOR", "fail",
+                  why="name/description mentions a reserved word (claude/anthropic)",
+                  how_to_fix="describe the task without naming the model or vendor")
+    return mk("2.7", item, "MAJOR", "pass")
+
+
+@rule
+def check_2_8(ctx):
+    item = "no redundant README.md"
+    if os.path.isfile(os.path.join(ctx.skill_dir, "README.md")):
+        return mk("2.8", item, "MINOR", "fail",
+                  why="README.md present alongside SKILL.md",
+                  how_to_fix="fold README content into SKILL.md and delete README.md")
+    return mk("2.8", item, "MINOR", "pass")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Skill rubric rule-checks.")
     ap.add_argument("skill_dir", nargs="?", help="path to the skill directory")
