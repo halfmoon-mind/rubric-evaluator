@@ -119,5 +119,16 @@ class GradeModeCliTests(unittest.TestCase):
             os.unlink(path)
 
 
+class StaleMarkerTests(unittest.TestCase):
+    def test_bare_marker_word_not_flagged(self):
+        self.assertIsNone(cr._stale_hit("remove any TODO or FIXME words before shipping"))
+    def test_marker_with_colon_flagged(self):
+        self.assertIsNotNone(cr._stale_hit("TODO: finish this section"))
+    def test_marker_with_space_before_colon_flagged(self):
+        self.assertIsNotNone(cr._stale_hit("TODO : finish this section"))
+    def test_phrase_token_substring_flagged(self):
+        self.assertIsNotNone(cr._stale_hit("here is some lorem ipsum filler text"))
+
+
 if __name__ == "__main__":
     unittest.main()

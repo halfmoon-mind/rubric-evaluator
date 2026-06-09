@@ -448,13 +448,30 @@ def check_5_7(ctx):
     return mk("5.7", item, "MINOR", "pass")
 
 
-# Tokens stored as adjacent string fragments so this source file never contains
-# the assembled literal -> the 5.8 scan does not flag check_rules.py itself.
-_STALE_TOKENS = [
-    "TO" "DO", "FIX" "ME", "X" "XX", "PLACE" "HOLDER",
-    "lor" "em ipsum", "imple" "ment later", "com" "ing soon",
-    "INSERT_" "HERE", "FILL_" "IN", "<yo" "ur-",
-]
+# Marker tokens fire only in actual marker form — the token followed by a colon
+# (whitespace-tolerant) — so merely mentioning the bare word in prose is not flagged.
+# Stored as adjacent string fragments (Convention 3) so the assembled word never
+# appears contiguously in this source file.
+_MARKER_TOKENS = ["TO" "DO", "FIX" "ME", "X" "XX", "PLACE" "HOLDER",
+                  "INSERT_" "HERE", "FILL_" "IN"]
+_MARKER_RE = [re.compile(re.escape(t) + r"\s*:") for t in _MARKER_TOKENS]
+
+# Phrase tokens are unambiguous residue strings; matched as plain substrings.
+_PHRASE_TOKENS = ["lor" "em ipsum", "imple" "ment later", "com" "ing soon", "<yo" "ur-"]
+
+
+def _stale_hit(text):
+    """First stale-scaffold marker in `text`, or None. The all-caps markers require a
+    trailing colon (whitespace-tolerant) so a bare prose mention is not flagged; the
+    phrase tokens match as substrings."""
+    for rx in _MARKER_RE:
+        m = rx.search(text)
+        if m:
+            return m.group(0).strip()
+    for token in _PHRASE_TOKENS:
+        if token in text:
+            return token
+    return None
 
 
 @rule
@@ -462,11 +479,9 @@ def check_5_8(ctx):
     item = "no stale scaffold markers in shipped files"
     hits = []
     for path in shipped_files(ctx.skill_dir):
-        text = read_text(path)
-        for token in _STALE_TOKENS:
-            if token in text:
-                hits.append("%s:%s" % (os.path.basename(path), token))
-                break
+        hit = _stale_hit(read_text(path))
+        if hit is not None:
+            hits.append("%s:%s" % (os.path.basename(path), hit))
     if hits:
         return mk("5.8", item, "MINOR", "fail",
                   why="placeholder residue found: %s" % ", ".join(hits),
