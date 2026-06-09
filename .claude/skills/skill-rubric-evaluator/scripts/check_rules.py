@@ -457,7 +457,9 @@ _MARKER_TOKENS = ["TO" "DO", "FIX" "ME", "X" "XX", "PLACE" "HOLDER",
 _MARKER_RE = [re.compile(re.escape(t) + r"\s*:") for t in _MARKER_TOKENS]
 
 # Phrase tokens are unambiguous residue strings; matched as plain substrings.
-_PHRASE_TOKENS = ["lor" "em ipsum", "imple" "ment later", "com" "ing soon", "<yo" "ur-"]
+# (Weaker phrases like "implement later"/"coming soon" were dropped: they false-positived
+# on skills that merely discuss such wording. Kept ones are strong residue signals.)
+_PHRASE_TOKENS = ["lor" "em ipsum", "<yo" "ur-"]
 
 
 def _stale_hit(text):
