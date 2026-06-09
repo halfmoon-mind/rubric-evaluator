@@ -60,6 +60,18 @@ class ParseFrontmatterTests(unittest.TestCase):
         )
         self.assertEqual(set(cr.top_level_keys(fm)), {"name", "description", "allowed-tools"})
 
+    def test_list_valued_name_description_do_not_crash_checks(self):
+        # Malformed block-list 'name'/'description' must not crash run_checks;
+        # they coerce to a string view, yielding a clean 2.2 finding instead.
+        d = tempfile.mkdtemp()
+        with open(os.path.join(d, "SKILL.md"), "w") as fh:
+            fh.write("---\nname:\n  - foo\ndescription:\n  - bar\n---\nbody")
+        ctx = cr.build_ctx(d)
+        self.assertIsInstance(ctx.name, str)
+        self.assertIsInstance(ctx.description, str)
+        findings = cr.run_checks(d)  # must not raise
+        self.assertTrue(any(x["id"] == "2.2" for x in findings))
+
 
 class ComputeGradeTests(unittest.TestCase):
     def _f(self, severity, status):

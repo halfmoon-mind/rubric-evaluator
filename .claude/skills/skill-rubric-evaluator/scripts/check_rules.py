@@ -50,6 +50,13 @@ def _unquote(val):
     return val
 
 
+def _scalar_str(val):
+    """Frontmatter scalars are normally strings; coerce a non-string value
+    (e.g. a malformed block-list 'name'/'description') to '' so downstream
+    string checks never crash on malformed input."""
+    return val if isinstance(val, str) else ""
+
+
 def parse_frontmatter(text):
     """Return (frontmatter dict, body str, ok bool, error str|None).
 
@@ -154,7 +161,8 @@ def build_ctx(skill_dir):
         skill_md_exists=os.path.isfile(skill_md),
         text=text, body=body,
         fm=fm, fm_ok=ok, fm_err=err,
-        name=fm.get("name", ""), description=fm.get("description", ""),
+        name=_scalar_str(fm.get("name", "")),
+        description=_scalar_str(fm.get("description", "")),
     )
 
 
