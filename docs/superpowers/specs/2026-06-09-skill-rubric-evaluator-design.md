@@ -38,8 +38,15 @@ Claude Code skill의 품질을 **6섹션 30항목 럽릭**으로 평가해 등�
 
 평가기 자신도 럽릭을 통과(S등급)하도록 설계한다(dogfooding).
 
+**구현 위치 — 에이전트별 분리 (Codex ≠ Claude Code)**
+같은 평가기를 두 에이전트가 각자의 규약으로 구현하며, 산출물은 서로 섞이지 않게 분리한다.
+- **Claude Code 구현** → `.claude/skills/skill-rubric-evaluator/` (이 설계/계획의 대상)
+- **Codex 구현(병렬 트랙)** → `.codex/skills/skill-rubric-evaluator/` (별도 트랙, 본 설계 범위 밖)
+
+아래 트리는 **Claude Code 구현** 기준이다. (아직 구현 전 — 위치만 명시.)
+
 ```
-skill-rubric-evaluator/
+.claude/skills/skill-rubric-evaluator/
 ├── SKILL.md                 # 오케스트레이션: 평가 흐름·등급 계산·리포트 포맷 (핵심만, 가볍게)
 ├── scripts/
 │   └── check_rules.py       # 규칙검사 17개 → JSON findings 출력 (표준 라이브러리만)
