@@ -7,6 +7,7 @@ Usage:
     python3 check_rules.py --grade <file>   # read a findings JSON array, print the grade
 """
 import argparse
+import ast
 import json
 import os
 import re
@@ -116,6 +117,8 @@ def shipped_files(skill_dir):
 
     This scope is what content scans (6.1 secrets, 5.8 placeholders) inspect, so
     the evaluator can dogfood itself without its own fixtures counting against it.
+    Compiled bytecode (__pycache__/*.pyc) is excluded as a local build artifact,
+    not shipped surface.
     """
     out = []
     top = os.path.join(skill_dir, "SKILL.md")
@@ -123,8 +126,11 @@ def shipped_files(skill_dir):
         out.append(top)
     for sub in ("references", "scripts"):
         base = os.path.join(skill_dir, sub)
-        for root, _, files in os.walk(base):
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if d != "__pycache__"]
             for name in files:
+                if name.endswith(".pyc"):
+                    continue
                 out.append(os.path.join(root, name))
     return out
 
@@ -305,6 +311,149 @@ def check_4_3(ctx):
     return mk("4.3", item, "MINOR", "fail",
               why="body is %d lines (>500)" % n,
               how_to_fix="move detail into references/ and keep SKILL.md lean")
+
+
+_MD_LINK = re.compile(r"\]\(([^)]+)\)")
+
+
+def _reference_files(skill_dir):
+    base = os.path.join(skill_dir, "references")
+    out = []
+    for root, _, files in os.walk(base):
+        for name in files:
+            if name.endswith(".md"):
+                out.append(os.path.join(root, name))
+    return out
+
+
+@rule
+def check_5_3(ctx):
+    item = "no nested reference chain (A->B->C)"
+    refs = _reference_files(ctx.skill_dir)
+    if not refs:
+        return mk("5.3", item, "MAJOR", "na", why="no reference files")
+    names = {os.path.basename(p): p for p in refs}
+    graph = {}
+    for path in refs:
+        targets = set()
+        for link in _MD_LINK.findall(read_text(path)):
+            if "://" in link:                    # external URL, not an internal reference
+                continue
+            tgt = os.path.basename(link.split("#")[0].strip())
+            if tgt in names and tgt != os.path.basename(path):
+                targets.add(tgt)
+        graph[os.path.basename(path)] = targets
+    # a chain of depth 3 exists if a -> b -> c with distinct nodes
+    for a, bs in graph.items():
+        for b in bs:
+            for c in graph.get(b, ()):
+                if c not in (a, b):
+                    return mk("5.3", item, "MAJOR", "fail",
+                              why="reference chain %s -> %s -> %s" % (a, b, c),
+                              how_to_fix="flatten references so SKILL.md links each "
+                                         "reference directly (max depth 2)")
+    return mk("5.3", item, "MAJOR", "pass")
+
+
+def _has_toc(text):
+    head = text.split("\n")[:40]
+    joined = "\n".join(head).lower()
+    if "table of contents" in joined or "## 목차" in "\n".join(head):
+        return True
+    return any("](#" in line for line in head)  # anchor links near the top
+
+
+@rule
+def check_5_4(ctx):
+    item = "references >=100 lines have a table of contents"
+    refs = _reference_files(ctx.skill_dir)
+    offenders = []
+    for path in refs:
+        text = read_text(path)
+        if len(text.split("\n")) >= 100 and not _has_toc(text):
+            offenders.append(os.path.basename(path))
+    if not refs:
+        return mk("5.4", item, "MINOR", "na", why="no reference files")
+    if offenders:
+        return mk("5.4", item, "MINOR", "fail",
+                  why="long reference(s) without a TOC: %s" % ", ".join(offenders),
+                  how_to_fix="add a '## Table of Contents' with anchor links")
+    return mk("5.4", item, "MINOR", "pass")
+
+
+def _script_files(skill_dir):
+    base = os.path.join(skill_dir, "scripts")
+    out = []
+    for root, dirs, files in os.walk(base):
+        dirs[:] = [d for d in dirs if d != "__pycache__"]
+        for name in files:
+            if name.endswith(".pyc"):
+                continue
+            out.append(os.path.join(root, name))
+    return out
+
+
+@rule
+def check_5_6(ctx):
+    item = "Python scripts parse (valid syntax)"
+    scripts = [p for p in _script_files(ctx.skill_dir) if p.endswith(".py")]
+    if not scripts:
+        return mk("5.6", item, "MAJOR", "na", why="no Python scripts")
+    broken = []
+    for path in scripts:
+        try:
+            ast.parse(read_text(path))
+        except SyntaxError as exc:
+            broken.append("%s (%s)" % (os.path.basename(path), exc.msg))
+    if broken:
+        return mk("5.6", item, "MAJOR", "fail",
+                  why="script(s) fail to parse: %s" % "; ".join(broken),
+                  how_to_fix="fix the syntax error so the script imports/runs")
+    return mk("5.6", item, "MAJOR", "pass")
+
+
+@rule
+def check_5_7(ctx):
+    item = "shipped scripts are referenced from SKILL.md"
+    scripts = _script_files(ctx.skill_dir)
+    if not scripts:
+        return mk("5.7", item, "MINOR", "na", why="no scripts")
+    missing = []
+    for path in scripts:
+        rel = "scripts/" + os.path.basename(path)
+        if rel not in ctx.text and os.path.basename(path) not in ctx.text:
+            missing.append(os.path.basename(path))
+    if missing:
+        return mk("5.7", item, "MINOR", "fail",
+                  why="script(s) not mentioned in SKILL.md: %s" % ", ".join(missing),
+                  how_to_fix="reference each script path from SKILL.md so it is discoverable")
+    return mk("5.7", item, "MINOR", "pass")
+
+
+# Tokens stored as adjacent string fragments so this source file never contains
+# the assembled literal -> the 5.8 scan does not flag check_rules.py itself.
+_STALE_TOKENS = [
+    "TO" "DO", "FIX" "ME", "X" "XX", "PLACE" "HOLDER",
+    "lor" "em ipsum", "imple" "ment later", "com" "ing soon",
+    "INSERT_" "HERE", "FILL_" "IN", "<yo" "ur-",
+]
+
+
+@rule
+def check_5_8(ctx):
+    item = "no stale scaffold markers in shipped files"
+    hits = []
+    for path in shipped_files(ctx.skill_dir):
+        text = read_text(path)
+        for token in _STALE_TOKENS:
+            if token in text:
+                hits.append("%s:%s" % (os.path.basename(path), token))
+                break
+    if hits:
+        return mk("5.8", item, "MINOR", "fail",
+                  why="placeholder residue found: %s" % ", ".join(hits),
+                  how_to_fix="remove leftover scaffolding markers and finish the content")
+    return mk("5.8", item, "MINOR", "pass")
 
 
 def main(argv=None):
