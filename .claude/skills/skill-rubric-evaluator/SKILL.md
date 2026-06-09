@@ -22,10 +22,13 @@ The target skill directory. If the user did not name one, ask which directory to
 
 2. **Run the deterministic rule-checks (17):**
    ```bash
-   python3 scripts/check_rules.py <target_dir>
+   sh scripts/run_checks.sh <target_dir>
    ```
-   This prints `{"findings": [...17 rule findings...], "grade": <rule-only grade>}`.
-   Each finding follows the schema below.
+   The wrapper tries `python3`, then `python`, then the Windows `py -3` launcher
+   (or call `python3 scripts/check_rules.py <target_dir>` directly if you know the
+   interpreter). This prints `{"findings": [...17 rule findings...], "grade":
+   <rule-only grade>}`. Each finding follows the schema below. If no interpreter is
+   found, read `references/fallbacks.md` and continue in provisional mode.
 
 3. **Apply the model-checks (13):** Read `references/model-rubric.md` now — it holds the
    criteria and good/bad examples for the semantic checks. Read the target's `SKILL.md`,
@@ -35,9 +38,11 @@ The target skill directory. If the user did not name one, ask which directory to
 4. **Combine + grade deterministically.** Concatenate the 17 rule findings and 13 model
    findings into one JSON array, write it to a temp file, and compute the final grade:
    ```bash
-   python3 scripts/check_rules.py --grade /tmp/all_findings.json
+   sh scripts/run_checks.sh --grade /tmp/all_findings.json
    ```
-   Use that grade verbatim. Do not recompute it by hand.
+   The wrapper forwards arguments, so this runs through the same interpreter ladder.
+   Use that grade verbatim. Do not recompute it by hand — the only exception is the
+   provisional no-Python path in `references/fallbacks.md`.
 
 5. **Render the report** (format below).
 
@@ -81,6 +86,14 @@ compactly; spend detail on fails. If the grade is F, lead with the BLOCKER(s).
 Sections: 1 validity (3) · 2 structure (8) · 3 triggers (6) · 4 content (3) ·
 5 resources (8) · 6 safety (2). 17 are rule-checked by the script; 13 are model-checked
 via `references/model-rubric.md`. 8 are BLOCKERs: 2.1–2.5, 3.4, 6.1, 6.2.
+
+## Fallbacks
+Read `references/fallbacks.md` when `scripts/run_checks.sh` fails, no Python
+interpreter is available, the skill is run from an unpacked repo, or the target is
+outside the writable workspace. It documents the interpreter ladder and a
+provisional manual mode (apply rules by eye where evidence is direct, mark the rest
+`na`, hand-grade, and label the TL;DR `PROVISIONAL`). Hand-grading is allowed **only**
+in that provisional mode — never on the normal path.
 
 ## Notes
 - The script is stdlib-only; no install step.
