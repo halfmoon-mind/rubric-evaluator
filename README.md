@@ -1,9 +1,14 @@
 # Rubric Evaluator
 
+![Rubric Evaluator project image](assets/project-image.png)
+
 Grade a skill directory (one that contains a `SKILL.md`) against a 6-section,
 30-item rubric. Deterministic structural and safety checks run as a stdlib-only
 Python script; semantic checks are applied from a bundled rubric reference. The
 headline grade (S/A/B/C/F) is computed deterministically, never eyeballed.
+
+The rubric is based on Toss Tech's article
+[Skill 품질 관리를 위한 Rubric 설계와 시스템 구현](https://toss.tech/article/skill-quality-rubric).
 
 The same skill bundle ships for two hosts from one source of truth at
 `plugins/rubric-evaluator/`:
