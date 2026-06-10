@@ -1,11 +1,15 @@
 ---
 name: rubric-evaluator
-description: Evaluate Codex skill folders that contain SKILL.md with a 6-section rubric, deterministic rule checks, semantic model checks, S/A/B/C/F grades, and fixable reports. Use when asked to grade, audit, review, dogfood, or improve a Codex skill, skill directory, SKILL.md, rubric score, trigger quality, resource structure, or safety gate.
+description: Evaluate a skill folder that contains SKILL.md with a 6-section rubric, deterministic rule checks, semantic model checks, S/A/B/C/F grades, and fixable reports. Use when asked to grade, audit, review, dogfood, or improve a skill, skill directory, SKILL.md, rubric score, trigger quality, resource structure, or safety gate.
 ---
 
 # Rubric Evaluator
 
-Evaluate a Codex skill directory with a 6-section, 30-item rubric. Use deterministic scripts for structural and safety checks, then apply semantic model checks from the bundled rubric reference. If the runtime or installation path is incomplete, use the fallback playbook and label the result as provisional.
+Evaluate a skill directory with a 6-section, 30-item rubric. Use deterministic scripts for structural and safety checks, then apply semantic model checks from the bundled rubric reference. If the runtime or installation path is incomplete, use the fallback playbook and label the result as provisional.
+
+## Script paths
+
+The bundled scripts live in this skill's own `scripts/` directory. On Claude Code, reference them through the plugin root so they resolve after installation: `${CLAUDE_PLUGIN_ROOT}/skills/rubric-evaluator/scripts/<name>`. If `${CLAUDE_PLUGIN_ROOT}` is unset — a plain checkout or the Codex host — drop the prefix and run `scripts/<name>` from this skill's directory. The commands below use the `${CLAUDE_PLUGIN_ROOT}` form.
 
 ## Workflow
 
@@ -13,7 +17,7 @@ Evaluate a Codex skill directory with a 6-section, 30-item rubric. Use determini
 2. Run the deterministic checks with the portable wrapper:
 
    ```bash
-   scripts/run_checks.sh <target-skill-dir>
+   sh "${CLAUDE_PLUGIN_ROOT}/skills/rubric-evaluator/scripts/run_checks.sh" <target-skill-dir>
    ```
 
    The wrapper tries `python3`, then `python`, then the Windows `py -3` launcher. If the wrapper cannot run, read `references/fallbacks.md` and continue in the documented degraded mode.
@@ -21,7 +25,7 @@ Evaluate a Codex skill directory with a 6-section, 30-item rubric. Use determini
 3. If the wrapper is unavailable but a Python interpreter is known, run the script directly:
 
    ```bash
-   python3 scripts/check_rules.py <target-skill-dir>
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/rubric-evaluator/scripts/check_rules.py" <target-skill-dir>
    ```
 
    The script returns JSON with `findings` and a rule-only `grade`.
@@ -40,7 +44,7 @@ Evaluate a Codex skill directory with a 6-section, 30-item rubric. Use determini
 7. Render the report. If you have written combined findings to a JSON file, run:
 
    ```bash
-   python3 scripts/render_report.py <combined-findings.json> --skill-name <skill-name>
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/rubric-evaluator/scripts/render_report.py" <combined-findings.json> --skill-name <skill-name>
    ```
 
    If no file is written, mirror the same report structure manually.
