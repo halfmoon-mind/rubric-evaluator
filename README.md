@@ -26,6 +26,26 @@ To try it without installing (single session, from a local checkout):
 claude --plugin-dir ./plugins/rubric-evaluator
 ```
 
+## Install (Codex)
+
+Add this repository as a Codex marketplace source, then install the plugin:
+
+```
+codex plugin marketplace add halfmoon-mind/rubric-evaluator
+codex plugin add rubric-evaluator@rubric-evaluator
+```
+
+To install from a local checkout instead, add the repo root as the local
+marketplace source:
+
+```
+codex plugin marketplace add .
+codex plugin add rubric-evaluator@rubric-evaluator
+```
+
+Start a new Codex thread after installing, then ask Codex to evaluate a skill,
+e.g. *"Use $rubric-evaluator to grade the skill directory at ./my-skill"*.
+
 ## What you get
 
 A grade plus a per-item report. For every failing item it states why it matters
