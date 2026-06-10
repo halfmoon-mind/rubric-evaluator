@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rubric Evaluator"
+  short_description: "Evaluate Codex skills with rubric checks"
+  default_prompt: "Use $rubric-evaluator to grade this skill directory and produce a concise improvement report."

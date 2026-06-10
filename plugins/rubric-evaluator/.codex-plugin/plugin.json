@@ -1,0 +1,33 @@
+{
+  "name": "rubric-evaluator",
+  "version": "0.1.0",
+  "description": "Evaluate Codex skills with deterministic checks, semantic rubric review, and fixable reports.",
+  "author": {
+    "name": "halfmoon-mind",
+    "url": "https://github.com/halfmoon-mind"
+  },
+  "homepage": "https://github.com/halfmoon-mind/rubric-evaluator",
+  "repository": "https://github.com/halfmoon-mind/rubric-evaluator",
+  "keywords": [
+    "codex",
+    "skills",
+    "rubric",
+    "evaluation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Rubric Evaluator",
+    "shortDescription": "Evaluate Codex skills with rubric checks.",
+    "longDescription": "Run deterministic checks and semantic rubric review for Codex skill directories, then produce graded, fixable reports.",
+    "developerName": "halfmoon-mind",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Analyze"
+    ],
+    "websiteURL": "https://github.com/halfmoon-mind/rubric-evaluator",
+    "defaultPrompt": [
+      "Use $rubric-evaluator to grade this skill directory."
+    ]
+  }
+}

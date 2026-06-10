@@ -1,0 +1,20 @@
+{
+  "name": "rubric-evaluator",
+  "interface": {
+    "displayName": "Rubric Evaluator"
+  },
+  "plugins": [
+    {
+      "name": "rubric-evaluator",
+      "source": {
+        "source": "local",
+        "path": "./plugins/rubric-evaluator"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
