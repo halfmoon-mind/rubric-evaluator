@@ -1,9 +1,9 @@
 ---
-name: skill-rubric-evaluator
+name: rubric-evaluator
 description: Use when reviewing, auditing, or grading a skill's quality — evaluates a skill directory against a 30-item rubric and reports a grade (S/A/B/C/F) with fixes. Trigger on "evaluate this skill", "skill 품질", "rubric", "grade my skill", "is this skill good".
 ---
 
-# skill-rubric-evaluator
+# rubric-evaluator
 
 Grade a skill against a 6-section / 30-item rubric. Deterministic checks run as a
 Python script; semantic checks are applied by reading the target. The headline grade

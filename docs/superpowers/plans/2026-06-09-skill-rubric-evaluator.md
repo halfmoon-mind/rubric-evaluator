@@ -1,4 +1,4 @@
-# skill-rubric-evaluator Implementation Plan
+# rubric-evaluator Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -41,15 +41,15 @@ python3 -m unittest discover -s tests -v
 ## File Structure
 
 **Implementation location (agent-separated):** the Claude Code build lives under
-`.claude/skills/skill-rubric-evaluator/`. A parallel Codex implementation lives separately
-under `.codex/skills/skill-rubric-evaluator/` and is out of scope for this plan — do not
+`.claude/skills/rubric-evaluator/`. A parallel Codex implementation lives separately
+under `.codex/skills/rubric-evaluator/` and is out of scope for this plan — do not
 edit it. **All file paths in the tasks below are relative to the skill root**
-`.claude/skills/skill-rubric-evaluator/` (e.g. `scripts/check_rules.py` means
-`.claude/skills/skill-rubric-evaluator/scripts/check_rules.py`). Create the directory at
+`.claude/skills/rubric-evaluator/` (e.g. `scripts/check_rules.py` means
+`.claude/skills/rubric-evaluator/scripts/check_rules.py`). Create the directory at
 implementation time; this plan only specifies the layout.
 
 ```
-.claude/skills/skill-rubric-evaluator/   # skill root — all task paths are relative to here
+.claude/skills/rubric-evaluator/   # skill root — all task paths are relative to here
 ├── SKILL.md                            # orchestration (Task 8)
 ├── scripts/
 │   └── check_rules.py                  # 17 rule checks + compute_grade + CLI (Tasks 1–6)
@@ -215,7 +215,7 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'check_rules'` (file no
 
 ```python
 #!/usr/bin/env python3
-"""Deterministic rule-checks for the skill-rubric-evaluator.
+"""Deterministic rule-checks for the rubric-evaluator.
 
 Stdlib only (no PyYAML, no pytest). Emits JSON findings and computes the grade.
 Usage:
@@ -1407,17 +1407,17 @@ git commit -m "docs: model-rubric.md with the 13 semantic check criteria"
 **Files:**
 - Create: `SKILL.md`
 
-SKILL.md ties it together: how to find the target, run the script, apply the model rubric, combine 30 findings, compute the deterministic grade via the `--grade` mode, and render the report. It must itself pass the rubric (kebab name == folder `skill-rubric-evaluator`, WHAT+WHEN description, mentions `scripts/check_rules.py` for 5.7, links `references/model-rubric.md` with a WHEN condition for 5.2, stays ≤500 lines for 4.3, no placeholder tokens for 5.8, and **no "claude"/"anthropic" in the name or description for 2.7** — describe the task without naming the platform).
+SKILL.md ties it together: how to find the target, run the script, apply the model rubric, combine 30 findings, compute the deterministic grade via the `--grade` mode, and render the report. It must itself pass the rubric (kebab name == folder `rubric-evaluator`, WHAT+WHEN description, mentions `scripts/check_rules.py` for 5.7, links `references/model-rubric.md` with a WHEN condition for 5.2, stays ≤500 lines for 4.3, no placeholder tokens for 5.8, and **no "claude"/"anthropic" in the name or description for 2.7** — describe the task without naming the platform).
 
 - [ ] **Step 1: Write `SKILL.md`**
 
 ````markdown
 ---
-name: skill-rubric-evaluator
+name: rubric-evaluator
 description: Use when reviewing, auditing, or grading a skill's quality — evaluates a skill directory against a 30-item rubric and reports a grade (S/A/B/C/F) with fixes. Trigger on "evaluate this skill", "skill 품질", "rubric", "grade my skill", "is this skill good".
 ---
 
-# skill-rubric-evaluator
+# rubric-evaluator
 
 Grade a skill against a 6-section / 30-item rubric. Deterministic checks run as a
 Python script; semantic checks are applied by reading the target. The headline grade

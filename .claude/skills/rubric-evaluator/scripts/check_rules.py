@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic rule-checks for the skill-rubric-evaluator.
+"""Deterministic rule-checks for the rubric-evaluator.
 
 Stdlib only (no PyYAML, no pytest). Emits JSON findings and computes the grade.
 Usage:

@@ -45,7 +45,7 @@ Codex용 Skill을 평가하는 Codex Skill을 만든다.
 ## 3. 산출물
 
 ```text
-skill-rubric-evaluator/
+rubric-evaluator/
 ├── SKILL.md
 ├── scripts/
 │   ├── check_rules.py
@@ -339,7 +339,7 @@ TL;DR: [Workflow Skill] 등급 F | BLOCKER 1, MAJOR 2, MINOR 3
 
 작업:
 
-1. `skill-rubric-evaluator/` 자기 평가
+1. `rubric-evaluator/` 자기 평가
 2. 설치된 local Skill 일부 rule 검사
 3. 오탐 발견 시 rule 조정
 
@@ -415,7 +415,7 @@ fixture-name/
 
 MVP는 다음을 모두 만족하면 완료다.
 
-- `skill-rubric-evaluator/SKILL.md`가 존재한다.
+- `rubric-evaluator/SKILL.md`가 존재한다.
 - `scripts/check_rules.py`가 17개 rule 검사를 JSON으로 출력한다.
 - `scripts/render_report.py`가 등급과 markdown report를 출력한다.
 - `references/model-rubric.md`가 13개 model 검사 기준을 제공한다.
@@ -427,7 +427,7 @@ MVP는 다음을 모두 만족하면 완료다.
 
 이 계획에 문제가 없으면 다음 순서로 구현한다.
 
-1. `skill-rubric-evaluator/` 디렉토리와 fixture skeleton 생성
+1. `rubric-evaluator/` 디렉토리와 fixture skeleton 생성
 2. rule 검사 fixture와 `expected.json` 작성
 3. `scripts/check_rules.py` 구현
 4. rule test 통과

@@ -1,4 +1,4 @@
-# skill-rubric-evaluator — 설계 문서
+# rubric-evaluator — 설계 문서
 
 **작성일**: 2026-06-09
 **상태**: 승인됨 (구현 계획 대기)
@@ -40,13 +40,13 @@ Claude Code skill의 품질을 **6섹션 30항목 럽릭**으로 평가해 등�
 
 **구현 위치 — 에이전트별 분리 (Codex ≠ Claude Code)**
 같은 평가기를 두 에이전트가 각자의 규약으로 구현하며, 산출물은 서로 섞이지 않게 분리한다.
-- **Claude Code 구현** → `.claude/skills/skill-rubric-evaluator/` (이 설계/계획의 대상)
-- **Codex 구현(병렬 트랙)** → `.codex/skills/skill-rubric-evaluator/` (별도 트랙, 본 설계 범위 밖)
+- **Claude Code 구현** → `.claude/skills/rubric-evaluator/` (이 설계/계획의 대상)
+- **Codex 구현(병렬 트랙)** → `.codex/skills/rubric-evaluator/` (별도 트랙, 본 설계 범위 밖)
 
 아래 트리는 **Claude Code 구현** 기준이다. (아직 구현 전 — 위치만 명시.)
 
 ```
-.claude/skills/skill-rubric-evaluator/
+.claude/skills/rubric-evaluator/
 ├── SKILL.md                 # 오케스트레이션: 평가 흐름·등급 계산·리포트 포맷 (핵심만, 가볍게)
 ├── scripts/
 │   └── check_rules.py       # 규칙검사 17개 → JSON findings 출력 (표준 라이브러리만)
@@ -195,7 +195,7 @@ TL;DR: [<Skill 유형>] | 등급 <X> | 개선 포인트:
    - `nested-references/` → MAJOR 5.3
    - `clean/` → 등급 S (모든 검사 통과)
    각 fixture에 기대 finding을 명시한 `expected.json` 동반.
-2. **Dogfood**: 평가기가 자기 자신(`skill-rubric-evaluator/`)을 평가해 **S등급**.
+2. **Dogfood**: 평가기가 자기 자신(`rubric-evaluator/`)을 평가해 **S등급**.
 3. **실제 skill 점검**: 디스크의 성숙한 skill(superpowers:* 등) 2–3개에 규칙검사를 돌려
    오탐(False Positive) 확인. 잘 만든 skill이 F면 검사기가 틀린 것.
 
