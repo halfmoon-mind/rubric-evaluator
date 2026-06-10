@@ -5,7 +5,7 @@ import unittest
 
 TEST_ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(os.path.dirname(TEST_ROOT))
-SKILL_ROOT = os.path.join(REPO_ROOT, ".codex", "skills", "rubric-evaluator")
+SKILL_ROOT = os.path.join(REPO_ROOT, "plugins", "rubric-evaluator", "skills", "rubric-evaluator")
 sys.path.insert(0, os.path.join(SKILL_ROOT, "scripts"))
 
 import check_rules as cr  # noqa: E402
