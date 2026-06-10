@@ -1,0 +1,15 @@
+{
+  "name": "rubric-evaluator",
+  "description": "Marketplace for the Rubric Evaluator plugin: grade a skill directory against a 6-section, 30-item rubric.",
+  "owner": {
+    "name": "halfmoon-mind",
+    "url": "https://github.com/halfmoon-mind"
+  },
+  "plugins": [
+    {
+      "name": "rubric-evaluator",
+      "source": "./plugins/rubric-evaluator",
+      "description": "Evaluate a skill directory (SKILL.md) with deterministic rule checks, semantic rubric review, and graded, fixable S/A/B/C/F reports."
+    }
+  ]
+}

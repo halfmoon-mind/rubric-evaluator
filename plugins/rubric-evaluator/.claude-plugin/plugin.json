@@ -1,0 +1,18 @@
+{
+  "name": "rubric-evaluator",
+  "description": "Evaluate a skill directory (SKILL.md) with deterministic rule checks, semantic rubric review, and graded, fixable S/A/B/C/F reports.",
+  "version": "0.1.0",
+  "author": {
+    "name": "halfmoon-mind",
+    "url": "https://github.com/halfmoon-mind"
+  },
+  "homepage": "https://github.com/halfmoon-mind/rubric-evaluator",
+  "repository": "https://github.com/halfmoon-mind/rubric-evaluator",
+  "keywords": [
+    "skills",
+    "rubric",
+    "evaluation",
+    "review",
+    "audit"
+  ]
+}
