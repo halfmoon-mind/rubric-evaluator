@@ -1,6 +1,6 @@
 {
   "name": "rubric-evaluator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Evaluate Codex skills with deterministic checks, semantic rubric review, and fixable reports.",
   "author": {
     "name": "halfmoon-mind",
@@ -26,6 +26,8 @@
       "Analyze"
     ],
     "websiteURL": "https://github.com/halfmoon-mind/rubric-evaluator",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png",
     "defaultPrompt": [
       "Use $rubric-evaluator to grade this skill directory."
     ]
