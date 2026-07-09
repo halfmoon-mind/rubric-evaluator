@@ -29,6 +29,11 @@ class FixtureTests(unittest.TestCase):
                     finding["id"] for finding in result["findings"] if finding["status"] == "fail"
                 )
                 self.assertEqual(actual_fail, sorted(expected["expected_fail"]))
+                if "expected_na" in expected:
+                    actual_na = sorted(
+                        finding["id"] for finding in result["findings"] if finding["status"] == "na"
+                    )
+                    self.assertEqual(actual_na, sorted(expected["expected_na"]))
                 self.assertEqual(result["grade"], expected["expected_grade"])
                 self.assertEqual(len(result["findings"]), 17)
 

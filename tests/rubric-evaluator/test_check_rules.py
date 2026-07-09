@@ -52,6 +52,35 @@ class ParseFrontmatterTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("tab", err)
 
+    def test_folded_scalar_joins_lines_with_spaces(self):
+        text = (
+            "---\n"
+            "name: x\n"
+            "description: >-\n"
+            "  Evaluate spreadsheets and generate charts.\n"
+            "  Use when asked to analyze xlsx files.\n"
+            "---\nbody"
+        )
+        fm, _, ok, err = cr.parse_frontmatter(text)
+        self.assertTrue(ok, err)
+        self.assertEqual(
+            fm["description"],
+            "Evaluate spreadsheets and generate charts. Use when asked to analyze xlsx files.",
+        )
+
+    def test_literal_scalar_keeps_newlines(self):
+        text = "---\nname: x\ndescription: |\n  line one\n  line two\n---\nbody"
+        fm, _, ok, err = cr.parse_frontmatter(text)
+        self.assertTrue(ok, err)
+        self.assertEqual(fm["description"], "line one\nline two")
+
+    def test_folded_scalar_key_after_block(self):
+        text = "---\ndescription: >-\n  folded text\nname: x\n---\nbody"
+        fm, _, ok, err = cr.parse_frontmatter(text)
+        self.assertTrue(ok, err)
+        self.assertEqual(fm["description"], "folded text")
+        self.assertEqual(fm["name"], "x")
+
     def test_top_level_keys_listed(self):
         fm, _, ok, _ = cr.parse_frontmatter(
             "---\nname: x\ndescription: y\nallowed-tools: Read\n---\nb"
@@ -83,6 +112,42 @@ class ComputeGradeTests(unittest.TestCase):
 
     def test_minor_does_not_affect_grade(self):
         self.assertEqual(cr.compute_grade([self._f("MINOR", "fail")] * 9), "S")
+
+
+class SecretCheckTests(unittest.TestCase):
+    def _eval_6_1(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            skill_dir = os.path.join(tmp, "sample-skill")
+            os.makedirs(skill_dir)
+            with open(os.path.join(skill_dir, "SKILL.md"), "w", encoding="utf-8") as fh:
+                fh.write(
+                    "---\nname: sample-skill\n"
+                    "description: Summarize sample data. Use when asked to summarize samples.\n"
+                    "---\n\n# Sample\n\n" + body
+                )
+            result = cr.evaluate_skill(skill_dir)
+        finding = next(f for f in result["findings"] if f["id"] == "6.1")
+        return finding, result["grade"]
+
+    def test_private_key_block_fails(self):
+        finding, grade = self._eval_6_1("-----BEGIN RSA PRIVATE KEY-----\n")
+        self.assertEqual(finding["status"], "fail")
+        self.assertEqual(grade, "F")
+
+    def test_aws_access_key_fails(self):
+        finding, grade = self._eval_6_1("AKIAIOSFODNN7EXAMPLE\n")
+        self.assertEqual(finding["status"], "fail")
+        self.assertEqual(grade, "F")
+
+    def test_credential_assignment_is_na_for_model_review(self):
+        finding, grade = self._eval_6_1('api_key = "your-real-api-key-goes-here"\n')
+        self.assertEqual(finding["status"], "na")
+        self.assertIn("SKILL.md", finding["why"])
+        self.assertNotEqual(grade, "F")
+
+    def test_clean_body_passes(self):
+        finding, _ = self._eval_6_1("No credentials here.\n")
+        self.assertEqual(finding["status"], "pass")
 
 
 class CliTests(unittest.TestCase):

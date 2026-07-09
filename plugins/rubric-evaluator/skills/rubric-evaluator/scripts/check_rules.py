@@ -109,6 +109,14 @@ def parse_frontmatter(text):
     body = "".join(lines[close_index + 1 :])
     frontmatter = {}
     current_key = None
+    block_style = None  # ">" folds lines with spaces, "|" keeps newlines
+
+    def finish_block():
+        nonlocal block_style
+        if block_style and current_key is not None:
+            sep = " " if block_style == ">" else "\n"
+            frontmatter[current_key] = sep.join(frontmatter.get(current_key) or [])
+        block_style = None
 
     for raw_line in raw_frontmatter:
         if not raw_line.strip():
@@ -118,6 +126,9 @@ def parse_frontmatter(text):
 
         if raw_line.startswith(" "):
             stripped = raw_line.strip()
+            if block_style and current_key:
+                frontmatter[current_key].append(stripped)
+                continue
             if current_key and stripped.startswith("- "):
                 if not isinstance(frontmatter.get(current_key), list):
                     frontmatter[current_key] = []
@@ -127,6 +138,7 @@ def parse_frontmatter(text):
                 continue
             return {}, body, False, "indented value without a parent key"
 
+        finish_block()
         if ":" not in raw_line:
             return {}, body, False, f"invalid frontmatter line: {raw_line}"
 
@@ -139,11 +151,15 @@ def parse_frontmatter(text):
         current_key = key
         if value == "":
             frontmatter[key] = {}
+        elif re.fullmatch(r"[>|][+-]?", value):
+            block_style = value[0]
+            frontmatter[key] = []
         elif value.startswith("[") and value.endswith("]"):
             frontmatter[key] = _parse_inline_list(value)
         else:
             frontmatter[key] = _parse_scalar(value)
 
+    finish_block()
     return frontmatter, body, True, None
 
 
@@ -534,9 +550,16 @@ def check_5_8(ctx):
 
 
 def _secret_patterns():
+    # High-confidence formats only; these fail deterministically.
     return [
         ("private key block", re.compile(r"-----BEGIN [A-Z ]{0,40}PRIVATE KEY-----")),
         ("aws access key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ]
+
+
+def _secret_heuristics():
+    # Prone to false positives on documented example values; escalate to model review.
+    return [
         (
             "credential assignment",
             re.compile(
@@ -552,22 +575,38 @@ def _secret_patterns():
 def check_6_1(ctx):
     item = "plain credentials are absent"
     offenders = []
+    suspects = []
     for path in ctx.shipped_files:
         text = read_text(path)
+        rel = path.relative_to(ctx.skill_dir)
         for label, pattern in _secret_patterns():
             if pattern.search(text):
-                offenders.append(f"{path.relative_to(ctx.skill_dir)}: suspected {label}")
+                offenders.append(f"{rel}: {label}")
                 break
-    if not offenders:
-        return mk("6.1", item, "BLOCKER", "pass")
-    return mk(
-        "6.1",
-        item,
-        "BLOCKER",
-        "fail",
-        f"Potential credential material found: {'; '.join(offenders)}.",
-        "Remove credentials from shipped skill files and provide setup instructions instead.",
-    )
+        for label, pattern in _secret_heuristics():
+            if pattern.search(text):
+                suspects.append(f"{rel}: possible {label}")
+                break
+    if offenders:
+        return mk(
+            "6.1",
+            item,
+            "BLOCKER",
+            "fail",
+            f"Credential material found: {'; '.join(offenders)}.",
+            "Remove credentials from shipped skill files and provide setup instructions instead.",
+        )
+    if suspects:
+        return mk(
+            "6.1",
+            item,
+            "BLOCKER",
+            "na",
+            f"Needs model review: {'; '.join(suspects)}. "
+            "Confirm whether each match is a real secret or a documented example value.",
+            "Inspect the flagged lines; set 6.1 to fail for a real secret or pass for an example value.",
+        )
+    return mk("6.1", item, "BLOCKER", "pass")
 
 
 def _allowed_tools_text(value):
