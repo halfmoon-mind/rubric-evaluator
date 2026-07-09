@@ -13,7 +13,7 @@ Use this reference only when the normal evaluator workflow cannot run cleanly or
 - Inspect only shipped files: `SKILL.md`, files under `references/`, and files under `scripts/`.
 - Apply the 17 rule IDs manually where evidence is direct.
 - Set uncertain rule findings to `na`; do not fabricate deterministic confidence.
-- Apply the 13 model checks from the normal workflow.
+- Apply the 14 model checks from the normal workflow.
 - Put `PROVISIONAL` in the TL;DR and explain that deterministic rule automation did not run.
 
 ## Installation Fallbacks

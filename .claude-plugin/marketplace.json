@@ -1,6 +1,6 @@
 {
   "name": "rubric-evaluator",
-  "description": "Marketplace for the Rubric Evaluator plugin: grade a skill directory against a 6-section, 30-item rubric.",
+  "description": "Marketplace for the Rubric Evaluator plugin: grade a skill directory against a 6-section, 31-item rubric.",
   "owner": {
     "name": "halfmoon-mind",
     "url": "https://github.com/halfmoon-mind"

@@ -5,7 +5,7 @@ description: Evaluate a skill folder that contains SKILL.md with a 6-section rub
 
 # Rubric Evaluator
 
-Evaluate a skill directory with a 6-section, 30-item rubric. Use deterministic scripts for structural and safety checks, then apply semantic model checks from the bundled rubric reference. If the runtime or installation path is incomplete, use the fallback playbook and label the result as provisional.
+Evaluate a skill directory with a 6-section, 31-item rubric. Use deterministic scripts for structural and safety checks, then apply semantic model checks from the bundled rubric reference. If the runtime or installation path is incomplete, use the fallback playbook and label the result as provisional.
 
 ## Script paths
 
@@ -30,8 +30,8 @@ The bundled scripts live in this skill's own `scripts/` directory. On Claude Cod
 
    The script returns JSON with `findings` and a rule-only `grade`.
 
-4. Read `references/model-rubric.md` after the rule output is available. Apply all 13 model checks and produce findings with the same schema as the rule findings.
-5. Combine rule and model findings. Keep every finding, including `pass` and `na`, so the final grade is auditable.
+4. Read `references/model-rubric.md` after the rule output is available. Apply all 14 model checks and produce findings with the same schema as the rule findings.
+5. Combine rule and model findings. Keep every finding, including `pass` and `na`, so the final grade is auditable. If rule finding 6.1 is `na`, it lists suspected credential lines that need review: read them, set 6.1 to `fail` for a real secret or `pass` for a documented example value, and change its `checker` to `model`.
 6. Compute the final grade from failed findings:
 
    - Any failed `BLOCKER` means `F`.
@@ -92,5 +92,5 @@ Keep passed findings collapsed into section summaries unless the user asks for t
 - Use `scripts/check_rules.py` for deterministic checks, rule-only grading, and JSON output.
 - Use `scripts/run_checks.sh` as the first-choice launcher for deterministic checks across common Python command names.
 - Use `scripts/render_report.py` when combined findings are available as JSON and a markdown report is useful.
-- Read `references/model-rubric.md` only after running deterministic checks or when authoring model findings; it contains the 13 semantic checks, pass/fail criteria, examples, and wording guidance.
+- Read `references/model-rubric.md` only after running deterministic checks or when authoring model findings; it contains the 14 semantic checks, pass/fail criteria, examples, and wording guidance.
 - Read `references/fallbacks.md` only when runtime, installation, path, or platform constraints prevent the normal workflow, or when the user asks for follow-up hardening work.

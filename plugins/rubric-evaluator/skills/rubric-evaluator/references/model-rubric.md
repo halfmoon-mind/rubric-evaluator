@@ -1,6 +1,6 @@
 # Model Rubric for Skill Evaluation
 
-Use this file after deterministic rule checks have run. Create exactly 13 model findings with the same schema as rule findings. Do not re-judge deterministic failures; use rule output as context and focus on semantic quality.
+Use this file after deterministic rule checks have run. Create exactly 14 model findings with the same schema as rule findings. Do not re-judge deterministic failures; use rule output as context and focus on semantic quality.
 
 ## Table of Contents
 
@@ -14,6 +14,7 @@ Use this file after deterministic rule checks have run. Create exactly 13 model 
 - [3.3 Description and Body Match](#33-description-and-body-match)
 - [3.4 No Body-Only Trigger](#34-no-body-only-trigger)
 - [3.5 Trigger Scope Is Not Too Broad](#35-trigger-scope-is-not-too-broad)
+- [3.7 Trigger Simulation Passes](#37-trigger-simulation-passes)
 - [4.1 Concrete Detail Exists](#41-concrete-detail-exists)
 - [4.2 Not Merely Basic Agent Advice](#42-not-merely-basic-agent-advice)
 - [5.1 Core in SKILL, Details Split Out](#51-core-in-skill-details-split-out)
@@ -96,7 +97,7 @@ Fail when it only says generic advice such as "read files carefully", "write cle
 
 False-positive guard: A short skill can pass if it encodes a non-obvious decision tree or strict validation process.
 
-Good evidence: "17 rule checks, 13 model checks, fixed grade thresholds."
+Good evidence: "17 rule checks, 14 model checks, fixed grade thresholds."
 
 Bad evidence: "Be helpful and concise when reviewing skills."
 
@@ -192,6 +193,26 @@ Bad evidence: "Use for any review, audit, or quality task."
 
 Fail wording: Identify the overbroad phrase and replace it with narrower target nouns and actions.
 
+## 3.7 Trigger Simulation Passes
+
+Severity: `MAJOR`
+
+Question: Would the description alone actually load this skill for prompts a real user would type?
+
+Method: Before judging, write 5 short user prompts — 3 that should trigger the skill and 2 adjacent prompts that should not. Judge each prompt against the frontmatter description only, never the body, since only the description is visible before triggering.
+
+Pass when all 3 should-trigger prompts plausibly match the description and neither should-not prompt does.
+
+Fail when any should-trigger prompt finds nothing to match, or a should-not prompt would load the skill.
+
+False-positive guard: Judge matching by meaning, not exact word overlap; a close synonym in the description counts as a match.
+
+Good evidence: Prompt "audit my skill folder" matches "audit" and "skill directory" in the description.
+
+Bad evidence: The description only says "quality framework assistant", so the prompt "grade ./my-skill" finds nothing to match.
+
+Fail wording: List the missed prompts (or the wrongly matched ones) and the description phrase to add or remove.
+
 ## 4.1 Concrete Detail Exists
 
 Severity: `MINOR`
@@ -222,7 +243,7 @@ Fail when most lines repeat general coding-agent norms with no target-specific r
 
 False-positive guard: General process language is acceptable around specialized steps.
 
-Good evidence: A named 30-item rubric with deterministic and semantic checks.
+Good evidence: A named 31-item rubric with deterministic and semantic checks.
 
 Bad evidence: "Read the code, think carefully, make a plan, run tests."
 
@@ -284,10 +305,10 @@ Fail wording: Identify the fragile repeated operation and propose a small determ
 
 ## Final Consistency Pass
 
-After writing 13 model findings, verify:
+After writing 14 model findings, verify:
 
-- exactly 13 model findings exist
-- IDs are 1.1, 1.2, 1.3, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 5.1, 5.2, 5.5
+- exactly 14 model findings exist
+- IDs are 1.1, 1.2, 1.3, 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 4.1, 4.2, 5.1, 5.2, 5.5
 - every finding has `checker: "model"`
 - each failed finding has both `why` and `how_to_fix`
 - the combined grade follows the fixed grade thresholds

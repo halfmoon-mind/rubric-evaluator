@@ -3,7 +3,7 @@
 ![Rubric Evaluator project image](assets/project-image.png)
 
 Grade a skill directory (one that contains a `SKILL.md`) against a 6-section,
-30-item rubric. Deterministic structural and safety checks run as a stdlib-only
+31-item rubric. Deterministic structural and safety checks run as a stdlib-only
 Python script; semantic checks are applied from a bundled rubric reference. The
 headline grade (S/A/B/C/F) is computed deterministically, never eyeballed.
 
