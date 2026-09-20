@@ -430,7 +430,7 @@ def check_5_3(ctx):
     for path in ctx.references:
         text = read_text(path)
         if any(_local_markdown_links(text)) or re.search(r"\breferences/[^)\s]+\.md\b", text):
-            offenders.append(str(path.relative_to(ctx.skill_dir)))
+            offenders.append(path.relative_to(ctx.skill_dir).as_posix())
     if not offenders:
         return mk("5.3", item, "MAJOR", "pass")
     return mk(
@@ -502,7 +502,7 @@ def check_5_7(ctx):
     item = "script paths are mentioned in SKILL.md"
     missing = []
     for path in ctx.scripts:
-        rel = str(path.relative_to(ctx.skill_dir))
+        rel = path.relative_to(ctx.skill_dir).as_posix()
         if rel not in ctx.skill_text:
             missing.append(rel)
     if not missing:
