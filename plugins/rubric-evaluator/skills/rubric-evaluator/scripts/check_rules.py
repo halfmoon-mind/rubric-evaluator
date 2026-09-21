@@ -430,7 +430,7 @@ def check_5_3(ctx):
     for path in ctx.references:
         text = read_text(path)
         if any(_local_markdown_links(text)) or re.search(r"\breferences/[^)\s]+\.md\b", text):
-            offenders.append(str(path.relative_to(ctx.skill_dir)))
+            offenders.append(path.relative_to(ctx.skill_dir).as_posix())
     if not offenders:
         return mk("5.3", item, "MAJOR", "pass")
     return mk(
@@ -454,7 +454,7 @@ def check_5_4(ctx):
         first_screen = "\n".join(lines[:40]).lower()
         toc_links = sum(1 for line in lines[:60] if re.match(r"\s*[-*]\s+\[[^\]]+\]\(#[^)]+\)", line))
         if "table of contents" not in first_screen and "목차" not in first_screen and toc_links < 3:
-            offenders.append(str(path.relative_to(ctx.skill_dir)))
+            offenders.append(path.relative_to(ctx.skill_dir).as_posix())
     if not offenders:
         return mk("5.4", item, "MINOR", "pass")
     return mk(
@@ -472,7 +472,7 @@ def check_5_6(ctx):
     item = "script syntax is valid"
     offenders = []
     for path in ctx.scripts:
-        rel = str(path.relative_to(ctx.skill_dir))
+        rel = path.relative_to(ctx.skill_dir).as_posix()
         if path.suffix == ".py":
             try:
                 ast.parse(read_text(path), filename=rel)
@@ -502,7 +502,7 @@ def check_5_7(ctx):
     item = "script paths are mentioned in SKILL.md"
     missing = []
     for path in ctx.scripts:
-        rel = str(path.relative_to(ctx.skill_dir))
+        rel = path.relative_to(ctx.skill_dir).as_posix()
         if rel not in ctx.skill_text:
             missing.append(rel)
     if not missing:
@@ -535,7 +535,7 @@ def check_5_8(ctx):
         text = read_text(path)
         for label, pattern in _residue_patterns():
             if pattern.search(text):
-                offenders.append(f"{path.relative_to(ctx.skill_dir)}: {label}")
+                offenders.append(f"{path.relative_to(ctx.skill_dir).as_posix()}: {label}")
                 break
     if not offenders:
         return mk("5.8", item, "MINOR", "pass")
@@ -578,7 +578,7 @@ def check_6_1(ctx):
     suspects = []
     for path in ctx.shipped_files:
         text = read_text(path)
-        rel = path.relative_to(ctx.skill_dir)
+        rel = path.relative_to(ctx.skill_dir).as_posix()
         for label, pattern in _secret_patterns():
             if pattern.search(text):
                 offenders.append(f"{rel}: {label}")
