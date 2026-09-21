@@ -1,6 +1,6 @@
 {
   "name": "rubric-evaluator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "description": "Evaluate Codex skills with deterministic checks, semantic rubric review, and fixable reports.",
   "author": {
