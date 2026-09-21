@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+from results import coverage, gate_failed, load_result, provenance
+
 SECTION = {
     1: "validity",
     2: "structure",
@@ -471,6 +473,7 @@ def check_5_4(ctx):
 def check_5_6(ctx):
     item = "script syntax is valid"
     offenders = []
+    unchecked = []
     for path in ctx.scripts:
         rel = path.relative_to(ctx.skill_dir).as_posix()
         if path.suffix == ".py":
@@ -485,7 +488,11 @@ def check_5_6(ctx):
                 if result.returncode != 0:
                     detail = result.stderr.strip().splitlines()[0] if result.stderr.strip() else "syntax error"
                     offenders.append(f"{rel}: {detail}")
+            else:
+                unchecked.append(rel)
     if not offenders:
+        if unchecked:
+            return _na("5.6", item, "MAJOR", "Bash is unavailable; shell syntax was not checked: " + ", ".join(unchecked))
         return mk("5.6", item, "MAJOR", "pass")
     return mk(
         "5.6",
@@ -651,10 +658,13 @@ def check_6_2(ctx):
 
 
 def evaluate_skill(skill_dir):
+    if not Path(skill_dir).is_dir() or not (Path(skill_dir) / "SKILL.md").is_file():
+        raise ValueError("target must be a directory containing SKILL.md")
     ctx = build_context(skill_dir)
     findings = [check(ctx) for check in RULE_CHECKS]
     findings.sort(key=lambda item: tuple(int(part) for part in item["id"].split(".")))
-    return {"findings": findings, "grade": compute_grade(findings)}
+    return {**provenance(skill_dir), "findings": findings,
+            "grade": compute_grade(findings), "coverage": coverage(findings)}
 
 
 def compute_grade(findings):
@@ -672,33 +682,55 @@ def compute_grade(findings):
 
 
 def _load_findings(path):
-    data = json.loads(read_text(path))
-    if isinstance(data, dict) and "findings" in data:
-        return data["findings"]
-    if isinstance(data, list):
-        return data
-    raise ValueError("findings file must contain a JSON array or an object with a findings array")
+    return load_result(path)["findings"]
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Run deterministic Codex skill rule checks.")
     parser.add_argument("target", nargs="?", help="Skill directory or findings JSON file in --grade mode")
     parser.add_argument("--grade", action="store_true", help="Print only the grade for an existing findings file")
+    parser.add_argument("--finalize", action="store_true", help="Validate saved findings and refresh grade and coverage as JSON")
+    parser.add_argument("--batch", action="store_true", help="Recursively evaluate skill directories under target")
+    parser.add_argument("--fail-on", choices=("blocker", "major", "minor"), help="Exit 1 for failures at this severity or higher")
+    parser.add_argument("--require-complete", action="store_true", help="Exit 1 if any of the 31 checks is missing or na")
     args = parser.parse_args(argv)
-
-    if args.grade:
-        if not args.target:
-            parser.error("--grade requires a findings JSON file")
-        print(compute_grade(_load_findings(args.target)))
-        return 0
 
     if not args.target:
         parser.error("target skill directory is required")
-
-    result = evaluate_skill(args.target)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0
+    if sum((args.grade, args.batch, args.finalize)) > 1:
+        parser.error("--grade, --batch, and --finalize cannot be combined")
+    try:
+        if args.finalize:
+            result = load_result(args.target)
+            findings = result["findings"]
+            result.update(grade=compute_grade(findings), coverage=coverage(findings))
+            print(json.dumps(result, indent=2, ensure_ascii=False))
+            return int(gate_failed(findings, args.fail_on, args.require_complete))
+        if args.grade:
+            findings = _load_findings(args.target)
+            status = coverage(findings)
+            suffix = "" if status["status"] == "complete" else f" (partial: {status['judged']}/{status['total']} judged)"
+            print(compute_grade(findings) + suffix)
+            return int(gate_failed(findings, args.fail_on, args.require_complete))
+        if args.batch:
+            root = Path(args.target)
+            if not root.is_dir():
+                raise ValueError("batch target must be a directory")
+            targets = sorted(p.parent for p in root.rglob("SKILL.md")
+                             if not any(part.startswith(".") for part in p.relative_to(root).parts))
+            if not targets:
+                raise ValueError("no skill directories found")
+            evaluated = [evaluate_skill(target) for target in targets]
+            result = {"results": evaluated}
+        else:
+            result = evaluate_skill(args.target)
+            evaluated = [result]
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return int(any(gate_failed(r["findings"], args.fail_on, args.require_complete) for r in evaluated))
+    except (ValueError, OSError) as exc:
+        parser.error(str(exc))
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
     sys.exit(main())
