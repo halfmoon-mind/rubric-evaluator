@@ -28,11 +28,11 @@ The bundled scripts live in this skill's own `scripts/` directory. On Claude Cod
    python3 "${CLAUDE_PLUGIN_ROOT}/skills/rubric-evaluator/scripts/check_rules.py" <target-skill-dir>
    ```
 
-   The script returns JSON with `findings` and a rule-only `grade`.
+   The script returns JSON with `findings`, a provisional rule-only `grade`, `coverage`, and provenance (rubric version/hash and target hash). Rule-only output is always partial: 14 semantic checks remain.
 
 4. Read `references/model-rubric.md` after the rule output is available. Apply all 14 model checks and produce findings with the same schema as the rule findings.
-5. Combine rule and model findings. Keep every finding, including `pass` and `na`, so the final grade is auditable. If rule finding 6.1 is `na`, it lists suspected credential lines that need review: read them, set 6.1 to `fail` for a real secret or `pass` for a documented example value, and change its `checker` to `model`.
-6. Compute the final grade from failed findings:
+5. Combine rule and model findings into the rule result's `findings` array, preserving its provenance fields. Keep every finding, including `pass` and `na`, so the final grade is auditable. If rule finding 6.1 is `na`, it lists suspected credential lines that need review: read them, set 6.1 to `fail` for a real secret or `pass` for a documented example value, and change its `checker` to `model`. Replace 6.1 rather than appending a duplicate. Evaluate the same target snapshot throughout; if files change, rerun the evaluation.
+6. Validate and refresh the combined result with `scripts/check_rules.py <combined-findings.json> --finalize`, saving stdout to a different file. Add `--require-complete` when all 31 checks must be judged. A result is complete only when all IDs are present and none is `na`; otherwise label the grade provisional. The script computes the grade from failed findings:
 
    - Any failed `BLOCKER` means `F`.
    - No failed `BLOCKER` and no failed `MAJOR` means `S`.
@@ -86,11 +86,15 @@ Lead with the grade and failed finding counts. Put failed `BLOCKER` findings fir
 - how to fix it
 
 Keep passed findings collapsed into section summaries unless the user asks for the full matrix.
+State evaluation coverage beside the grade. Never present missing or `na` checks as `PASS`. Empty or invalid findings are input errors, not an S grade.
 
 ## Resource Use
 
 - Use `scripts/check_rules.py` for deterministic checks, rule-only grading, and JSON output.
 - Use `scripts/run_checks.sh` as the first-choice launcher for deterministic checks across common Python command names.
 - Use `scripts/render_report.py` when combined findings are available as JSON and a markdown report is useful.
+- Use `scripts/compare_results.py` to compare saved before/after results; only a failed check that now passes is resolved.
+- `scripts/results.py` provides shared schema validation, coverage, provenance, and quality gates for these commands; it is imported, not run directly.
+- Read `references/automation.md` when comparing evaluations, evaluating multiple skills, using CI gates, or interpreting provenance.
 - Read `references/model-rubric.md` only after running deterministic checks or when authoring model findings; it contains the 14 semantic checks, pass/fail criteria, examples, and wording guidance.
 - Read `references/fallbacks.md` only when runtime, installation, path, or platform constraints prevent the normal workflow, or when the user asks for follow-up hardening work.

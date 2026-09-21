@@ -153,8 +153,8 @@ class SecretCheckTests(unittest.TestCase):
 class CliTests(unittest.TestCase):
     def test_grade_mode_reads_combined_findings(self):
         findings = [
-            {"id": "1.1", "severity": "MAJOR", "status": "fail"},
-            {"id": "2.1", "severity": "BLOCKER", "status": "pass"},
+            {**cr.mk("1.1", "Repeated workflow", "MAJOR", "fail", "One-off task.", "Generalize the workflow."), "checker": "model"},
+            cr.mk("2.1", "Frontmatter", "BLOCKER", "pass"),
         ]
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
             json.dump(findings, fh)
@@ -172,7 +172,7 @@ class CliTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(out.returncode, 0, out.stderr)
-            self.assertEqual(out.stdout.strip(), "A")
+            self.assertEqual(out.stdout.strip(), "A (partial: 2/31 judged)")
         finally:
             os.unlink(path)
 

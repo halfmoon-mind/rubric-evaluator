@@ -84,6 +84,46 @@ and how to fix it:
 - no `BLOCKER`, 0 `MAJOR` → **S** · 1–2 → **A** · 3–4 → **B** · 5+ → **C**
 - `MINOR` items are advisory and never change the grade
 
+## Automation
+
+The commands below use the bundled scripts directly from a checkout. No extra
+Python packages are required.
+
+```bash
+# Rule checks with a CI gate (BLOCKER or MAJOR failures exit 1).
+python3 plugins/rubric-evaluator/skills/rubric-evaluator/scripts/check_rules.py ./my-skill --fail-on major
+
+# Evaluate all skills under a directory and render a summary table.
+python3 plugins/rubric-evaluator/skills/rubric-evaluator/scripts/check_rules.py ./skills --batch > /tmp/batch.json
+python3 plugins/rubric-evaluator/skills/rubric-evaluator/scripts/render_report.py /tmp/batch.json
+
+# Compare saved evaluations; add --json for structured output.
+python3 plugins/rubric-evaluator/skills/rubric-evaluator/scripts/compare_results.py /tmp/before.json /tmp/after.json
+
+# Validate combined rule + model findings and refresh the saved grade/coverage.
+python3 plugins/rubric-evaluator/skills/rubric-evaluator/scripts/check_rules.py /tmp/combined.json --finalize --require-complete > /tmp/final.json
+```
+
+Rule-only grades are **provisional**: they cover 17 of the 31 checks. Reports
+show missing and unresolved (`na`) checks instead of marking them PASS. Full
+evaluation requires all 31 checks with no `na`; completion does not imply a
+passing grade. Empty findings, duplicate or unknown IDs, incorrect severities,
+and malformed fields are rejected.
+
+Results include rubric version/hash and target hash. Preserve these fields
+when adding semantic findings; finalization recalculates grade and coverage.
+Save reports outside the target directory to avoid changing its hash.
+Legacy finding arrays remain readable when every finding has the full schema.
+
+Comparisons distinguish resolved, introduced, persistent, unverified, and
+newly observed failures. A missing check never counts as a resolved issue.
+Changed rubric metadata and partial coverage are reported alongside grades.
+
+Exit codes are **0** for success, **1** for an unmet quality gate, and **2** for
+invalid input. `--fail-on blocker|major|minor` includes higher severities;
+`--require-complete` also rejects partial evaluation. Without gate flags,
+valid evaluation continues to exit 0 regardless of findings.
+
 ## Develop / test
 
 The checker is stdlib-only (no install step). Run the test suite with:
@@ -91,6 +131,21 @@ The checker is stdlib-only (no install step). Run the test suite with:
 ```
 python3 -m unittest discover -s tests/rubric-evaluator -p "test_*.py"
 ```
+
+GitHub Actions runs the suite on Linux, macOS, and Windows with Python 3.10,
+3.13, and 3.14, including Unicode/space paths, UTF-8 BOM input, deterministic
+hash ordering, and plugin manifest/version/path consistency checks. Semantic
+model judgments require separate calibration; see
+[the test guide](tests/rubric-evaluator/README.md) for repeated-run metrics.
+
+Python 3.10+ is supported. On Windows PowerShell or Command Prompt without a
+POSIX shell, run the Python scripts directly (`python` or `py -3`); the shell
+wrapper requires `sh`, such as Git Bash. Shell syntax checks require Bash;
+if it is missing, check 5.6 is unresolved (`na`) instead of passing. Python
+checks still run. CLI output is UTF-8; saved JSON may include a UTF-8 BOM.
+Use PowerShell 7+ for the redirection examples (Windows PowerShell 5.1 can
+write UTF-16 files, which this tool does not accept). Repository text files
+use LF on checkout to keep shell scripts and evaluator hashes consistent.
 
 ## License
 
