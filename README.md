@@ -91,3 +91,7 @@ The checker is stdlib-only (no install step). Run the test suite with:
 ```
 python3 -m unittest discover -s tests/rubric-evaluator -p "test_*.py"
 ```
+
+## License
+
+[MIT](LICENSE)
